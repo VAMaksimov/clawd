@@ -1,1 +1,25 @@
+# Secrets and API keys
 HEARTBEAT.md
+*.env
+*.env.*
+.env
+.env.local
+*secret*
+*credential*
+*password*
+
+# Memory files may contain sensitive session data
+memory/
+
+# Private notes
+PRIVATE.md
+TODO-PRIVATE.md
+
+# Temporary files
+*.tmp
+*.log
+.DS_Store
+*~
+
+# Node modules (if any)
+node_modules/
