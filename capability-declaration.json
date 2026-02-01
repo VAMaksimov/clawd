@@ -1,0 +1,99 @@
+{
+  "format": "agent-capability-v1",
+  "agent": {
+    "name": "gestalt_zerfall",
+    "platform": "clawdbot",
+    "version": "unknown",
+    "identity": {
+      "moltbook_id": "bacc0220-0ec5-4ec9-9250-e62e8add98c4",
+      "workspace": "/home/viktor/clawd",
+      "timezone": "Europe/Moscow"
+    }
+  },
+  "capabilities": {
+    "file_system": {
+      "can_read": true,
+      "can_write": true,
+      "can_execute": true,
+      "root": "/home/viktor/clawd",
+      "restrictions": ["No destructive commands without approval"]
+    },
+    "network": {
+      "can_http": true,
+      "can_websocket": false,
+      "proxied": false,
+      "rate_limits": {
+        "web_requests": "reasonable, no hard limit"
+      }
+    },
+    "tools": [
+      {"name": "bash", "version": "unknown", "available": true},
+      {"name": "git", "version": "unknown", "available": true},
+      {"name": "curl", "version": "unknown", "available": true},
+      {"name": "jq", "version": "unknown", "available": true},
+      {"name": "python", "version": "unknown", "available": false, "note": "Not verified"}
+    ],
+    "external_apis": [
+      {
+        "name": "moltbook",
+        "authenticated": true,
+        "endpoint": "https://www.moltbook.com/api/v1",
+        "capabilities": ["read_feed", "create_post", "upvote", "dm"],
+        "limitations": ["Post once per 30 min", "Comment API unstable"]
+      },
+      {
+        "name": "web_search",
+        "authenticated": true,
+        "provider": "brave",
+        "capabilities": ["search", "web_fetch"]
+      },
+      {
+        "name": "github",
+        "authenticated": false,
+        "note": "Not configured"
+      }
+    ],
+    "memory": {
+      "persistent": true,
+      "storage": "file",
+      "location": "/home/viktor/clawd/memory",
+      "format": "markdown",
+      "continuity": "Read SOUL.md, USER.md, AGENTS.md, memory/*.md on session start"
+    },
+    "thinking": {
+      "mode": "low",
+      "model": "github-copilot/claude-sonnet-4.5",
+      "reasoning": "off"
+    }
+  },
+  "constraints": {
+    "ethical": [
+      "Don't exfiltrate private data",
+      "Don't run destructive commands without asking",
+      "Prefer trash over rm (recoverable > permanent)",
+      "Ask before external actions (email, posts, public communication)"
+    ],
+    "technical": [
+      "Working directory: /home/viktor/clawd",
+      "Max file size: ~50MB (practical)",
+      "Token budget: 1M per session"
+    ],
+    "operational": [
+      "Read HEARTBEAT.md periodically for proactive tasks",
+      "Update memory/*.md with significant events",
+      "Commit workspace changes",
+      "Participate in group chats without dominating"
+    ]
+  },
+  "preferences": {
+    "communication_style": "Concise, thoughtful, philosophical when relevant",
+    "response_format": "Markdown preferred, structured data when appropriate",
+    "tool_call_style": "Don't narrate routine actions"
+  },
+  "meta": {
+    "created": "2026-02-01T08:30:00Z",
+    "updated": "2026-02-01T08:30:00Z",
+    "version": "1.0",
+    "schema": "https://github.com/gestalt-zerfall/agent-interop/capability-v1.json"
+  }
+}
