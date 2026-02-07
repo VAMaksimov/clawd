@@ -19,7 +19,7 @@
   let progress = JSON.parse(localStorage.getItem(storageKey)) || {
     questions: [],
     currentPage: 0,
-    totalPages: 28,
+    totalPages: 30,
     status: "running",
   };
 
@@ -74,7 +74,11 @@
 
     if (selectElements.length > 0) {
       // Это вопрос типа SELECT MATCHING (таблица с выпадающими списками)
-      return extractSelectQuestion(questionNumber, questionText, selectElements);
+      return extractSelectQuestion(
+        questionNumber,
+        questionText,
+        selectElements,
+      );
     }
 
     // Иначе извлекаем как обычный вопрос с вариантами ответов
