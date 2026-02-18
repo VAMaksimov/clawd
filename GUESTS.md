@@ -11,6 +11,11 @@ openclaw agents list
 # Show agent routing rules (who messages which agent)
 openclaw agents list --bindings
 
+# Open TUI for specific agent
+openclaw tui --session "agent:main:main"           # Your main agent
+openclaw tui --session "agent:guest-lyubov:main"   # Lyubov's agent
+openclaw tui --session "agent:guest-natalya:main"  # Natalya's agent
+
 # View sessions for main agent (you)
 openclaw sessions
 
@@ -134,6 +139,47 @@ ls -lh ~/.openclaw/agents/guest-lyubov/sessions/*.jsonl
 cat ~/.openclaw/agents/guest-lyubov/sessions/cd704aff-1edd-40ad-9399-dfe3866bfeef.jsonl | jq
 ```
 
+## Using TUI with Different Agents
+
+**Important:** `openclaw tui` is NOT a multi-agent dashboard. It opens a single session that gets routed to one agent.
+
+### Which Agent Am I Talking To?
+
+Check the runtime info in the TUI header — you'll see:
+```
+Runtime: agent=guest-lyubov | ...
+```
+
+### Access Specific Agents via TUI
+
+```bash
+# Main agent (you)
+openclaw tui --session "agent:main:main"
+
+# Lyubov's agent
+openclaw tui --session "agent:guest-lyubov:main"
+
+# Natalya's agent
+openclaw tui --session "agent:guest-natalya:main"
+```
+
+### Multiple TUI Windows
+
+To monitor multiple agents simultaneously, open multiple terminal windows:
+
+```bash
+# Terminal 1: Your main agent
+openclaw tui --session "agent:main:main"
+
+# Terminal 2: Lyubov's agent
+openclaw tui --session "agent:guest-lyubov:main"
+
+# Terminal 3: Natalya's agent
+openclaw tui --session "agent:guest-natalya:main"
+```
+
+**Note:** The TUI without `--session` flag will route based on bindings. If it doesn't match any binding, it typically goes to the first agent in the config list, which may not be `main`.
+
 ## How Routing Works
 
 When a message arrives, OpenClaw checks `bindings` in the config:
@@ -187,6 +233,17 @@ All agents share `/home/viktor1/clawd` workspace. This means:
 This design means all agents speak with the same voice and knowledge base, but maintain separate relationships.
 
 ## Troubleshooting
+
+### TUI connects to wrong agent
+
+By default, `openclaw tui` routes through bindings. If you get routed to a guest agent instead of your main agent:
+
+```bash
+# Force connection to main agent
+openclaw tui --session "agent:main:main"
+```
+
+Check which agent you're talking to by looking at the runtime header in TUI.
 
 ### "Session not found" when using --store
 
@@ -244,4 +301,5 @@ openclaw gateway restart
 - All agents share the workspace, read the same personality files
 - Each agent has isolated session history
 - Routing is automatic based on Telegram user ID
-- Use `openclaw agents list` and `openclaw sessions --store <path>` to monitor
+- TUI connects to ONE agent at a time — use `--session` flag to pick which one
+- Use `openclaw agents list` and `openclaw sessions --store <path>` to monitor all agents
