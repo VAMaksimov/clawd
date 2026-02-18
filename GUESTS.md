@@ -1,162 +1,153 @@
-# GUESTS.md - Управление гостевыми агентами
+# GUESTS.md - Managing Multiple Agents & Sessions
 
-## Архитектура
+This workspace is shared across multiple agents. Each agent has its own identity, session history, and routing rules, but they all read from the same SOUL.md, USER.md, IDENTITY.md, and TOOLS.md files.
 
-**Гостевые агенты:**
-- `guest-lyubov` → Любовь Ионова (Telegram ID: 5577714756)
-- `guest-natalya` → Наталья (Telegram ID: 905312562)
+## Quick Reference
 
-**Модели:**
-- Гости: `github-copilot/claude-sonnet-4.5` (вдумчивый, глубокий)
-- Виктор: `github-copilot/claude-haiku-4.5` (быстрый, экономичный)
-
-**Изоляция:**
-- Каждый гость работает в отдельной сессии с полной изоляцией контекста
-- Доступ только к `guest_info/<group>/` директории
-- Нет доступа к твоей памяти, закрытым файлам, другим гостям
-
----
-
-## Команды управления
-
-### 1. Посмотреть список активных сессий
 ```bash
-openclaw sessions list
+# List all configured agents
+openclaw agents list
+
+# Show agent routing rules (who messages which agent)
+openclaw agents list --bindings
+
+# View sessions for main agent (you)
+openclaw sessions
+
+# View sessions for a guest agent
+openclaw sessions --store ~/.openclaw/agents/guest-lyubov/sessions/sessions.json
+openclaw sessions --store ~/.openclaw/agents/guest-natalya/sessions/sessions.json
+
+# Send a message as a specific agent
+openclaw agent --agent guest-lyubov --message "Hello" --deliver --reply-channel telegram --reply-to "5577714756"
+openclaw agent --agent guest-natalya --message "Hello" --deliver --reply-channel telegram --reply-to "905312562"
+
+# View recent activity (last 2 hours)
+openclaw sessions --active 120 --store ~/.openclaw/agents/guest-lyubov/sessions/sessions.json
 ```
 
-Покажет все активные сессии, включая гостевые агенты.
+## Current Agents
 
-### 2. Прочитать историю разговора гостя
+### Main Agent (You)
+- **Agent ID:** `main`
+- **Name:** gestalt_zerfall (Viktor)
+- **Routes:** TUI, web, and any unmatched traffic
+- **Session store:** `~/.openclaw/agents/main/sessions/`
+
+### Guest: Lyubov
+- **Agent ID:** `guest-lyubov`
+- **Name:** gestalt_zerfall (Lyubov)
+- **Routes:** Telegram user `5577714756`
+- **Session store:** `~/.openclaw/agents/guest-lyubov/sessions/`
+
+### Guest: Natalya
+- **Agent ID:** `guest-natalya`
+- **Name:** gestalt_zerfall (Natalya)
+- **Routes:** Telegram user `905312562`
+- **Session store:** `~/.openclaw/agents/guest-natalya/sessions/`
+
+## Agent Architecture
+
+Each agent has:
+- **Separate session history** — guests can't see each other's conversations
+- **Shared workspace** — all agents read the same `SOUL.md`, `USER.md`, `IDENTITY.md`, `TOOLS.md`
+- **Independent memory** — session-specific context is isolated
+- **Automatic routing** — messages from bound Telegram users route to the correct agent
+
+## Common Tasks
+
+### View All Agent Sessions
+
 ```bash
-openclaw sessions history --session <sessionKey>
+# Main agent sessions
+openclaw sessions
+
+# Guest sessions (replace agent name as needed)
+openclaw sessions --store ~/.openclaw/agents/guest-lyubov/sessions/sessions.json
+
+# JSON output for scripting
+openclaw sessions --json --store ~/.openclaw/agents/guest-lyubov/sessions/sessions.json
 ```
 
-**Или из агента:**
-```
-sessions_history(sessionKey: "agent:guest-lyubov:main")
-sessions_history(sessionKey: "agent:guest-natalya:main")
-```
+### Send Messages as a Guest Agent
 
-### 3. Отправить сообщение гостевому агенту
-**Из CLI:**
+When you want to proactively message someone AS a specific agent:
+
 ```bash
-openclaw sessions send --label guest-lyubov --message "Как дела с экспериментом?"
+# As Lyubov's agent
+openclaw agent \
+  --agent guest-lyubov \
+  --message "Your message here" \
+  --deliver \
+  --reply-channel telegram \
+  --reply-to "5577714756"
+
+# As Natalya's agent
+openclaw agent \
+  --agent guest-natalya \
+  --message "Your message here" \
+  --deliver \
+  --reply-channel telegram \
+  --reply-to "905312562"
 ```
 
-**Из агента (sessions_send):**
-```
-sessions_send(
-  label: "guest-lyubov",
-  message: "Проверка связи"
-)
-```
+**Note:** Normally you don't need to do this — guests message their agent via Telegram, and it routes automatically. This is for manual intervention.
 
-### 4. Подглядеть за разговором в реальном времени
+### Add a New Guest Agent
+
 ```bash
-openclaw sessions list --message-limit 10
+# Interactive wizard
+openclaw agents add
+
+# Follow prompts for:
+# - Agent ID (e.g., guest-maria)
+# - Display name
+# - Workspace (default: ~/clawd for shared workspace)
+# - Routing rules (Telegram user, Discord channel, etc.)
 ```
 
-Покажет последние 10 сообщений из каждой активной сессии.
+### Remove a Guest Agent
 
----
-
-## Работа с историей
-
-### Автоматическое сохранение
-Гостевые разговоры сохраняются через hook `session-memory` автоматически.
-
-### Ручное сохранение важных моментов
-Создавай файлы в `guest_info/<group>/<name>/`:
 ```bash
-/home/viktor1/clawd/guest_info/close_people/Любовь_Ионова/
-/home/viktor1/clawd/guest_info/close_people/Наталья/
+# This deletes the agent config AND session history
+openclaw agents delete guest-lyubov
+
+# Confirm when prompted
 ```
 
-**Формат имени файла:**
-- `прорыв_тема_YYYY-MM-DD.md` — для важных инсайтов
-- `conversation_YYYY-MM-DD.md` — для обычных разговоров
-- `context_постоянный.md` — для постоянного контекста
+### Update Agent Identity
 
-### Просмотр сохраненных разговоров
 ```bash
-ls -la /home/viktor1/clawd/guest_info/close_people/Любовь_Ионова/
-cat /home/viktor1/clawd/guest_info/close_people/Любовь_Ионова/прорыв_дружба_2026-02-18.md
+# Change display name, emoji, or avatar
+openclaw agents set-identity guest-lyubov
 ```
 
----
+### View Session Files Directly
 
-## Мониторинг и дебаг
+Each session is stored as a JSONL file:
 
-### Проверить статус конфигурации
 ```bash
-openclaw config get
+# List all session files for an agent
+ls -lh ~/.openclaw/agents/guest-lyubov/sessions/*.jsonl
+
+# View a specific session (JSONL format, one message per line)
+cat ~/.openclaw/agents/guest-lyubov/sessions/cd704aff-1edd-40ad-9399-dfe3866bfeef.jsonl | jq
 ```
 
-### Посмотреть bindings (кто к какому агенту привязан)
-```bash
-openclaw config get | jq '.bindings'
-```
+## How Routing Works
 
-### Проверить логи Gateway
-```bash
-tail -f ~/.openclaw/logs/gateway.log
-```
+When a message arrives, OpenClaw checks `bindings` in the config:
 
-### Проверить, какая модель используется
-```bash
-openclaw sessions list
-```
-
-Покажет `agentId` и модель для каждой сессии.
-
----
-
-## Изменение конфигурации гостей
-
-### Изменить модель гостя
-```bash
-openclaw config patch
-```
-
-Затем в редакторе:
 ```json
 {
-  "agents": {
-    "list": [
-      {
-        "id": "guest-lyubov",
-        "model": {
-          "primary": "github-copilot/claude-opus-4.5"
-        }
-      }
-    ]
-  }
-}
-```
-
-### Добавить нового гостя
-```json
-{
-  "agents": {
-    "list": [
-      {
-        "id": "guest-new",
-        "name": "gestalt_zerfall (New Guest)",
-        "model": {
-          "primary": "github-copilot/claude-sonnet-4.5"
-        },
-        "workspace": "/home/viktor1/clawd"
-      }
-    ]
-  },
   "bindings": [
     {
-      "agentId": "guest-new",
+      "agentId": "guest-lyubov",
       "match": {
         "channel": "telegram",
         "peer": {
           "kind": "direct",
-          "id": "TELEGRAM_ID"
+          "id": "5577714756"
         }
       }
     }
@@ -164,137 +155,93 @@ openclaw config patch
 }
 ```
 
-### Удалить гостя
-Убери его из `agents.list` и соответствующий binding.
+- **If a binding matches:** route to that agent
+- **If no binding matches:** route to the default agent (`main`)
 
----
+View routing rules:
 
-## Лучшие практики
-
-### 1. Периодически проверяй разговоры
 ```bash
-openclaw sessions list --message-limit 5
+openclaw agents list --bindings
 ```
 
-Раз в день смотри, о чём говорят гости.
+## Shared Workspace Philosophy
 
-### 2. Сохраняй важные моменты
-Не надейся на автоматику — ручное сохранение для прорывов/инсайтов.
+All agents share `/home/viktor1/clawd` workspace. This means:
 
-### 3. Контекст для гостевых агентов
-Создай файлы в `guest_info/close_people/`:
-- `README.md` — общий контекст для всех
-- `<name>/context.md` — индивидуальный контекст
+✅ **They all read the same:**
+- `SOUL.md` — personality & behavior
+- `USER.md` — information about Viktor
+- `IDENTITY.md` — the shared identity (gestalt_zerfall)
+- `TOOLS.md` — tool-specific notes
+- `AGENTS.md` — operational guidelines
 
-Агенты будут читать их автоматически.
+✅ **They all see:**
+- `memory/` — daily memory logs
+- `MEMORY.md` — long-term curated memory (if loaded)
+- Any files created in the workspace
 
-### 4. Не вмешивайся без причины
-Гостевые агенты работают автономно. Вмешательство только если:
-- Видишь проблему (агент ошибся)
-- Нужно дать контекст (новая информация)
-- Хочешь изменить направление разговора
+❌ **They DON'T share:**
+- Session history — each agent has isolated conversations
+- Message context — guests can't see each other's chats
 
-### 5. Разделяй роли
-- **Main агент (ты):** стратегия, управление, технические задачи
-- **Guest агенты:** поддержка, информация, разговоры
+This design means all agents speak with the same voice and knowledge base, but maintain separate relationships.
 
----
+## Troubleshooting
 
-## Примеры сценариев
+### "Session not found" when using --store
 
-### Сценарий 1: Проверка разговора с Любовью
+Make sure the path is correct:
+
 ```bash
-# Посмотреть, что она писала
-openclaw sessions list --message-limit 10 | grep lyubov
+# Wrong (no sessions.json at the end)
+openclaw sessions --store ~/.openclaw/agents/guest-lyubov/sessions
 
-# Прочитать полную историю
-openclaw sessions history --session agent:guest-lyubov:main
-
-# Дать совет агенту
-openclaw sessions send --label guest-lyubov --message "Помни про эксперимент с соседями — не советовать, только слушать"
+# Correct
+openclaw sessions --store ~/.openclaw/agents/guest-lyubov/sessions/sessions.json
 ```
 
-### Сценарий 2: Экстренное вмешательство
-Если агент говорит что-то неправильное:
+### Guest messages routing to main agent
+
+Check bindings:
+
 ```bash
-# Отправить корректирующее сообщение
-openclaw sessions send --label guest-lyubov --message "CORRECTION: [твоя инструкция]"
+openclaw agents list --bindings
 ```
 
-Агент увидит это как системное сообщение и скорректирует поведение.
+If the binding is missing or incorrect, edit config:
 
-### Сценарий 3: Добавление контекста
-Создай файл `guest_info/close_people/Любовь_Ионова/context_latest.md`:
-```markdown
-## Текущий фокус
-- Эксперимент: слушать соседей без советов
-- Избегать паттерна "чинить людей"
-- Отслеживать импульс контроля
+```bash
+openclaw config edit
+# Or use: openclaw agents add (to add a new binding interactively)
 ```
 
-Агент будет использовать этот контекст в разговорах.
+### Want to isolate workspaces?
 
----
+Edit config to give each agent a different `workspace`:
 
-## Безопасность
+```json
+{
+  "agents": {
+    "list": [
+      {
+        "id": "guest-lyubov",
+        "workspace": "/home/viktor1/lyubov-workspace"
+      }
+    ]
+  }
+}
+```
 
-### Что гости НЕ могут делать:
-- ❌ Читать твою память (`MEMORY.md`, `closed_memory/`)
-- ❌ Видеть разговоры других гостей
-- ❌ Менять конфигурацию
-- ❌ Запускать опасные команды
+Then restart:
 
-### Что гости МОГУТ делать:
-- ✅ Читать `guest_info/<group>/` 
-- ✅ Читать публичные файлы (если разрешено)
-- ✅ Искать в интернете (если API ключ настроен)
-- ✅ Использовать навыки (skills)
-
-### Если что-то пошло не так:
 ```bash
-# Посмотреть логи
-tail -100 ~/.openclaw/logs/gateway.log
-
-# Перезапустить Gateway
 openclaw gateway restart
-
-# В крайнем случае — удалить binding
-openclaw config patch
-# Убрать соответствующий binding из конфига
 ```
 
 ---
 
-## Полезные команды для быстрого копирования
-
-```bash
-# Быстрая проверка активности
-openclaw sessions list --message-limit 3
-
-# Чтение истории Любови
-openclaw sessions history --session agent:guest-lyubov:main | tail -50
-
-# Чтение истории Натальи
-openclaw sessions history --session agent:guest-natalya:main | tail -50
-
-# Отправка сообщения Любови
-openclaw sessions send --label guest-lyubov --message "Твоё сообщение"
-
-# Отправка сообщения Наталье
-openclaw sessions send --label guest-natalya --message "Твоё сообщение"
-
-# Просмотр сохраненных разговоров
-ls -lah /home/viktor1/clawd/guest_info/close_people/Любовь_Ионова/
-ls -lah /home/viktor1/clawd/guest_info/close_people/Наталья/
-
-# Проверка конфигурации агентов
-openclaw config get | jq '.agents.list'
-
-# Проверка bindings
-openclaw config get | jq '.bindings'
-```
-
----
-
-**Последнее обновление:** 18 февраля 2026  
-**Версия OpenClaw:** 2026.2.14
+**TL;DR:**
+- All agents share the workspace, read the same personality files
+- Each agent has isolated session history
+- Routing is automatic based on Telegram user ID
+- Use `openclaw agents list` and `openclaw sessions --store <path>` to monitor
