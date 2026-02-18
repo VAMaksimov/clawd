@@ -9,7 +9,7 @@ HEARTBEAT.md
 *password*
 
 # Memory files may contain sensitive session data
-memory/
+closed_memory/
 
 # Private notes
 PRIVATE.md
