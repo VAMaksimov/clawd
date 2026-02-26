@@ -59,6 +59,67 @@ Each agent has:
 - **Independent memory** — session-specific context is isolated
 - **Automatic routing** — messages from bound Telegram users route to the correct agent
 
+## Cron Tasks for Guest Agents
+
+Schedule proactive messages from guest agents (e.g., periodic check-ins):
+
+```bash
+# Add a recurring task for guest-lyubov (every 3 days)
+openclaw cron add \
+  --name "chat-with-lyubov" \
+  --agent guest-lyubov \
+  --every 3d \
+  --message "Continue conversation with Любовь Ионова (telegram id: 5577714756) - ask more about her life" \
+  --to "5577714756" \
+  --channel telegram \
+  --announce
+
+# Add a recurring task for guest-natalya (every week)
+openclaw cron add \
+  --name "chat-with-natalya" \
+  --agent guest-natalya \
+  --every 7d \
+  --message "Continue conversation with Natalya - check in on how she's doing" \
+  --to "905312562" \
+  --channel telegram \
+  --announce
+```
+
+**Schedule options:**
+- `--every 3d` — every 3 days
+- `--every 12h` — every 12 hours
+- `--every 2w` — every 2 weeks
+- `--cron "0 9 * * *"` — every day at 9 AM (cron expression)
+- `--at "2026-03-01T10:00:00Z"` — one-time at specific time
+
+**List all cron jobs:**
+
+```bash
+openclaw cron list
+```
+
+**Disable/enable a cron job:**
+
+```bash
+# Disable
+openclaw cron disable chat-with-lyubov
+
+# Enable
+openclaw cron enable chat-with-lyubov
+```
+
+**Remove a cron job:**
+
+```bash
+openclaw cron rm chat-with-lyubov
+```
+
+**Test a cron job immediately:**
+
+```bash
+openclaw cron run chat-with-lyubov
+```
+
 ## Common Tasks
 
 ### View All Agent Sessions
