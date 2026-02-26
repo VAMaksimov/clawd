@@ -127,6 +127,50 @@ openclaw agents delete guest-lyubov
 openclaw agents set-identity guest-lyubov
 ```
 
+### Change Default Model for All Agents
+
+To change the default model used by all agents (main + guests):
+
+```bash
+# Set the primary model
+openclaw config set agents.defaults.model.primary github-copilot/claude-sonnet-4.5
+
+# Restart gateway to apply changes
+openclaw gateway restart
+```
+
+**Available models:**
+- `github-copilot/claude-sonnet-4.5` (recommended for quality)
+- `github-copilot/claude-sonnet-4.6` (latest Claude)
+- `github-copilot/gpt-4o` (fast, good for quick tasks)
+- `github-copilot/gpt-5` (newest GPT)
+- `github-copilot/gemini-3-flash-preview` (fast, cheap)
+
+**Change model for a specific agent only:**
+
+```bash
+# Edit config manually
+openclaw config edit
+
+# Add "model" field under the specific agent in agents.list:
+{
+  "id": "guest-lyubov",
+  "model": {
+    "primary": "github-copilot/gpt-5"
+  },
+  ...
+}
+
+# Then restart
+openclaw gateway restart
+```
+
+Verify the change:
+
+```bash
+openclaw agents list
+```
+
 ### View Session Files Directly
 
 Each session is stored as a JSONL file:
