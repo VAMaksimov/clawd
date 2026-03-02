@@ -13,7 +13,7 @@ openclaw agents list --bindings
 
 # Open TUI for specific agent
 openclaw tui --session "agent:main:main"           # Your main agent
-openclaw tui --session "agent:guest-lyubov:main"   # Lyubov's agent
+openclaw tui --session "agent:guest-lyubov:telegram:direct:5577714756"   # Lyubov's agent
 openclaw tui --session "agent:guest-natalya:main"  # Natalya's agent
 
 # View sessions for main agent (you)
